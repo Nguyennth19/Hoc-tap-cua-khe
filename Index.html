@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>UniLMS - Student Portal</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#1e3a8a', // blue-900
+            secondary: '#3b82f6', // blue-500
+          }
+        }
+      }
+    }
+  </script>
+
+  <?!= include('CSS_Global'); ?>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen w-screen overflow-hidden flex">
+  
+  <div id="splash-screen" class="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center transition-opacity duration-500">
+    <div class="loader-spinner !w-12 !h-12 !border-4 !border-slate-200 !border-t-primary mb-4"></div>
+    <h2 class="text-xl font-bold text-primary">UniLMS</h2>
+    <p class="text-sm text-slate-500 mt-2">Đang tải hệ thống...</p>
+  </div>
+
+  <div id="app-root" class="w-full h-full flex spa-hidden">
+    
+    <div id="view-login" class="w-full h-full flex items-center justify-center bg-slate-100 spa-hidden">
+      <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+        <div class="text-center mb-8">
+          <h1 class="text-2xl font-bold text-slate-800">Đăng nhập vào Student Portal</h1>
+          <p class="text-sm text-slate-500 mt-1">Sử dụng tài khoản do nhà trường cấp</p>
+        </div>
+        
+        <form id="form-login" onsubmit="AuthService.handleLogin(event)">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-slate-700 mb-1">Tên đăng nhập / Email</label>
+            <input type="text" id="login-email" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="vd: student1" required>
+          </div>
+          
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-slate-700 mb-1">Mật khẩu</label>
+            <input type="password" id="login-password" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="••••••••" required>
+          </div>
+
+          <div id="login-error-text" class="mb-4 text-sm text-red-500 text-center spa-hidden"></div>
+          
+          <button type="submit" id="btn-login-submit" class="w-full bg-primary hover:bg-blue-800 text-white font-bold py-2.5 px-4 rounded-lg transition duration-200 flex justify-center items-center">
+            Đăng nhập
+          </button>
+        </form>
+        
+        <div class="mt-6 text-center text-xs text-slate-400">
+          <p>Hệ thống được bảo vệ bởi chuẩn mã hóa hiện đại</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-dashboard" class="w-full h-full flex spa-hidden">
+      <div id="layout-sidebar" class="w-64 bg-white border-r border-slate-200 h-full flex flex-col hidden md:flex">
+        <?!= include('View_Sidebar'); ?>
+      </div>
+      
+      <div class="flex-1 flex flex-col h-full bg-slate-50 overflow-hidden">
+        <header id="layout-header" class="h-16 bg-white border-b border-slate-200 flex items-center px-6 justify-between">
+          <?!= include('View_Header'); ?>
+        </header>
+        
+        <main id="layout-main-content" class="flex-1 overflow-y-auto p-6">
+          <?!= include('View_DashboardContent'); ?>
+        </main>
+      </div>
+      
+      <div id="layout-right-sidebar" class="w-72 bg-white border-l border-slate-200 h-full hidden lg:block overflow-y-auto p-4">
+        <?!= include('View_RightSidebar'); ?>
+      </div>
+    </div>
+
+  </div>
+
+  <?!= include('JS_Global'); ?>
+  <?!= include('JS_NetworkService'); ?>
+  <?!= include('JS_Auth'); ?>
+  <?!= include('JS_Dashboard'); ?>
+  
+  <script>
+    const AppController = {
+      init: function() {
+        const token = AuthService.getToken();
+        
+        setTimeout(() => {
+          document.getElementById('splash-screen').classList.add('opacity-0');
+          setTimeout(() => {
+            document.getElementById('splash-screen').classList.add('spa-hidden');
+            document.getElementById('app-root').classList.remove('spa-hidden');
+            
+            if (token) {
+              this.navigateTo('dashboard');
+            } else {
+              this.navigateTo('login');
+            }
+          }, 500);
+        }, 500);
+      },
+
+      /**
+       * Điều hướng SPA (Chỉ đổi CSS class ẩn/hiện)
+       */
+      navigateTo: function(viewName) {
+        document.getElementById('view-login').classList.add('spa-hidden');
+        document.getElementById('view-dashboard').classList.add('spa-hidden');
+        
+        if (viewName === 'login') {
+          document.getElementById('view-login').classList.remove('spa-hidden');
+        } else if (viewName === 'dashboard') {
+          document.getElementById('view-dashboard').classList.remove('spa-hidden');
+          // Gọi Controller xử lý dữ liệu cho Dashboard
+          if (typeof DashboardController !== 'undefined') {
+            DashboardController.init();
+          }
+        }
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      AppController.init();
+    });
+  </script>
+</body>
+</html>

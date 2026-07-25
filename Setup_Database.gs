@@ -2,6 +2,7 @@
  * Setup_Database.gs
  * TỰ ĐỘNG KHỞI TẠO CẤU TRÚC CƠ SỞ DỮ LIỆU
  * Tuân thủ [FILE 1 - Mục 1.1, 1.2, 1.3] của Enterprise Playbook & Master V8.1 OS
+ * Bản cập nhật: Đầy đủ các bảng cho toàn bộ hệ thống LMS
  */
 
 function autoSetupDatabase() {
@@ -18,6 +19,11 @@ function autoSetupDatabase() {
       name: "Data_Users",
       headersRow1: ["Email Người Dùng", "Mật Khẩu (Hashed/PIN)", "Họ Và Tên", "Vai Trò (Role)", "Trạng Thái", "Đăng Nhập Lần Cuối"],
       headersRow2: ["email", "passwordHash", "fullName", "role", "status", "lastLogin"]
+    },
+    {
+      name: "Data_Scores", // BẢNG: Quản lý điểm số
+      headersRow1: ["Mã Điểm", "Email Học Sinh", "Học Kỳ", "Năm Học", "Môn Học", "Điểm Quá Trình (40%)", "Điểm KT Ngắn (20%)", "Điểm Thi (40%)", "Điểm Tổng Kết", "Đánh Giá"],
+      headersRow2: ["id", "studentEmail", "semester", "year", "subject", "scoreProcess", "scoreQuiz", "scoreTest", "scoreFinal", "evaluation"]
     },
     {
       name: "Thiet_Lap",
@@ -52,7 +58,7 @@ function autoSetupDatabase() {
       // Định dạng Dòng 1 (Tiêu đề UI cho người dùng)
       var rangeRow1 = sheet.getRange(1, 1, 1, config.headersRow1.length);
       rangeRow1.setFontWeight("bold");
-      rangeRow1.setBackground("#1e293b"); // Dark Gray / Slate 800
+      rangeRow1.setBackground("#1e293b"); // Slate 800
       rangeRow1.setFontColor("#ffffff");
 
       // Định dạng Dòng 2 (Header Keys - camelCase)
@@ -70,7 +76,7 @@ function autoSetupDatabase() {
   var thietLapSheet = ss.getSheetByName("Thiet_Lap");
   if (thietLapSheet && thietLapSheet.getLastRow() <= 2) {
     var defaultConfig = [
-      ["APP_NAME", "UniLMS Student Portal", "Tên hệ thống Web App"],
+      ["APP_NAME", "KIDLEARN LMS", "Tên hệ thống Web App"],
       ["SYSTEM_VERSION", "2.0.0", "Phiên bản Enterprise Playbook"],
       ["SESSION_TIMEOUT_MINS", "120", "Thời gian hết hạn phiên đăng nhập"]
     ];
@@ -83,13 +89,25 @@ function autoSetupDatabase() {
     ss.deleteSheet(defaultSheet);
   }
 
-  // 5. Ghi Audit Log khởi tạo hệ thống
+  // 5. Dữ liệu Mẫu (Dummy Data) cho bảng Data_Scores để test UI trang Bảng điểm
+  var scoreSheet = ss.getSheetByName("Data_Scores");
+  if (scoreSheet && scoreSheet.getLastRow() <= 2) {
+    var dummyScores = [
+      ["SC_01", "student1", "Học kỳ II", "2024 - 2025", "Toán học", 8.5, 8.0, 9.0, 8.6, "Tốt"],
+      ["SC_02", "student1", "Học kỳ II", "2024 - 2025", "Tiếng Việt", 8.0, 7.5, 8.5, 8.1, "Tốt"],
+      ["SC_03", "student1", "Học kỳ II", "2024 - 2025", "Tiếng Anh", 7.5, 8.5, 8.0, 7.9, "Khá"],
+      ["SC_04", "student1", "Học kỳ II", "2024 - 2025", "Khoa học", 8.0, 7.0, 7.5, 7.6, "Khá"]
+    ];
+    scoreSheet.getRange(3, 1, dummyScores.length, dummyScores[0].length).setValues(dummyScores);
+  }
+
+  // 6. Ghi Audit Log khởi tạo hệ thống
   AuditLogger.log("SYSTEM", "SETUP_DATABASE", "DATABASE", { status: "Success", timestamp: new Date() });
 
-  // 6. Hiển thị thông báo hoàn tất
+  // 7. Hiển thị thông báo hoàn tất
   SpreadsheetApp.getUi().alert(
     "Thành công!",
-    "Hệ thống CSDL cho UniLMS đã được khởi tạo hoàn tất theo chuẩn Master GAS OS V8.1 Playbooks.",
+    "Toàn bộ CSDL cho hệ thống KIDLEARN đã được khởi tạo hoàn tất.",
     SpreadsheetApp.getUi().ButtonSet.OK
   );
 }
